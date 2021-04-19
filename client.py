@@ -1,7 +1,8 @@
-import wand
+import wand.image
 import qrcode
 import sys
 import hashlib
+import base64
 
 def generate_qr(data: bytes):
   qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=20, border=4)
@@ -42,6 +43,7 @@ output_qrs = sys.argv[3]
 
 compress_img(input_pici, output_pici)
 with open(output_pici, "rb") as file:
-  print(hashlib.sha256(file.read()).hexdigest()
-sig = input("Signature: ")
-encode(output_pici, sig, output_qrs)
+  data = file.read()
+  print(hashlib.sha256(data).hexdigest())
+  sig = input("Signature: ")
+  encode(data, sig, output_qrs)
