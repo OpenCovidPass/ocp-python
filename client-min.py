@@ -22,13 +22,9 @@ def encode(compressed, sig, out):
     generate_qr(chunks[i]).save(f"{out}/{i}.png")
 
 # MAIN CODE
-input_pici = sys.argv[1]
-output_pici = sys.argv[2]
-output_qrs = sys.argv[3]
-
-compress_img(input_pici, output_pici)
-with open(output_pici, "rb") as file:
+compress_img(sys.argv[1],  sys.argv[2])
+with open(sys.argv[2], "rb") as file:
   data = file.read()
   print(hashlib.sha256(data).hexdigest())
   sig = input("Signature: ")
-  encode(data, sig, output_qrs)
+  encode(data, sig, sys.argv[3])
