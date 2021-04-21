@@ -12,7 +12,7 @@ import nacl.exceptions
 import hashlib
 import fpdf
 import pygifsicle
-import zlib
+import bz2
 
 def generate_qr(data: bytes):
   qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=20, border=4)
@@ -39,7 +39,7 @@ def compress_img(filename: str, output: str):
   img.save(filename=output)
   with open(output, "rb+") as file:
     data = file.read()
-    data = zlib.compress(data, 9)
+    data = bz2.compress(data, 9)
     file.seek(0)
     file.truncate(0)
     file.write(data)
@@ -128,7 +128,7 @@ def decode(qrs):
   res = res.ljust(((len(res) + 7) // 8) * 8, '=')
   res = base64.b32decode(res)
 
-  return base64.b16encode(res[:64]).decode(),zlib.decompress(res[64:])
+  return base64.b16encode(res[:64]).decode(),bz2.decompress(res[64:], 9)
 
 def decodecam(dev = None):
   state = {}
@@ -163,7 +163,7 @@ def decodecam(dev = None):
   res = res.ljust(((len(res) + 7) // 8) * 8, '=')
   res = base64.b32decode(res)
 
-  return base64.b16encode(res[:64]).decode(),zlib.decompress(res[64:])
+  return base64.b16encode(res[:64]).decode(),bz2.decompress(res[64:])
 
 def makepdf(output: str, picis: str):
   pdf = fpdf.FPDF()

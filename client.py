@@ -3,7 +3,7 @@ import qrcode
 import sys
 import hashlib
 import base64
-import zlib
+import bz2
 
 def generate_qr(data: bytes):
   qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=20, border=4)
@@ -41,7 +41,7 @@ output_qrs = sys.argv[3]
 
 compress_img(input_pici, output_pici)
 with open(output_pici, "rb") as file:
-  data = zlib.compress(file.read(), 9)
+  data = bz2.compress(file.read(), 9)
   print(hashlib.sha256(data).hexdigest())
   sig = input("Signature: ")
   encode(data, sig, output_qrs)
