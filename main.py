@@ -11,6 +11,8 @@ from nacl.encoding import HexEncoder
 import nacl.exceptions
 import hashlib
 import fpdf
+import pygifsicle
+import zlib
 
 def generate_qr(data: bytes):
   qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=20, border=4)
@@ -35,15 +37,13 @@ def compress_img(filename: str, output: str):
   img.resize(200, 200)
   img.quantize(8, "gray")
   img.save(filename=output)
-#  pygifsicle.optimize(
-#    source=output,
-#    destination=output,
-#    colors=32,
-#    options=["--lossy=50", "-f", "--use-colormap", "gray"]
-#  )
-#  img.fuzz = 1000
-#  img.compression_quality = 1
-  img.save(filename=output)
+  with open(output, "rb+") as file:
+    data = file.read()
+    data = zlib.compress(data, 9)
+    file.seek(0)
+    file.truncate(0)
+    file.write(data)
+
 qrcode_max_size = 3000 #4269 - 2 #1249 - 2 #4296 - 2
 
 def chunk_data(data: bytes):
@@ -128,7 +128,7 @@ def decode(qrs):
   res = res.ljust(((len(res) + 7) // 8) * 8, '=')
   res = base64.b32decode(res)
 
-  return base64.b16encode(res[:64]).decode(),res[64:]
+  return base64.b16encode(res[:64]).decode(),zlib.decompress(res[64:])
 
 def decodecam(dev = None):
   state = {}
@@ -163,7 +163,7 @@ def decodecam(dev = None):
   res = res.ljust(((len(res) + 7) // 8) * 8, '=')
   res = base64.b32decode(res)
 
-  return base64.b16encode(res[:64]).decode(),res[64:]
+  return base64.b16encode(res[:64]).decode(),zlib.decompress(res[64:])
 
 def makepdf(output: str, picis: str):
   pdf = fpdf.FPDF()
@@ -221,8 +221,8 @@ def main():
       print("Invalid compress command")
       help()
       return 1
-    if not sys.argv[3].endswith(".gif"):
-      print("Output must have a .gif file extension!")
+    if not sys.argv[3].endswith(".bmp") and False:
+      print("Output must have a .bmp file extension!")
       return 1
     compress_img(sys.argv[2], sys.argv[3])
     with open(sys.argv[3], "rb") as file:
